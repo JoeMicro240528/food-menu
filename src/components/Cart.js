@@ -1,35 +1,61 @@
-import React, { useEffect } from 'react'
-import { Card, Row ,Col} from 'react-bootstrap'
-import AOS from 'aos'
-import 'aos/dist/aos.css'
+import React from 'react'
+import { Button } from 'react-bootstrap';
+import { useDispatch, useSelector } from 'react-redux'
+import { clearCart, removeFromCart } from '../rtk/slice/cart-slice';
 
-const Cart = ({item}) => {
-  useEffect(() => {
-    AOS.init({
-      offset: 100,
-      duration: 600,
-      easing: 'ease-in-sine',
-      delay: 150,
-    });
-  }, [])
+const Cart = () => {
+  const products = useSelector((state) => state.cart);
+  const dispatch = useDispatch();
+
+  const totalPrice = products.reduce((acc, item) => {
+    return acc += item.price * item.quantity
+  }, 0)
   return (
     <div>
-      <Row data-aos="zoom-in-right" className='my-3'>
-        <Col sm={12}>
-          <Card className="p-0 justify-content-md-center d-flex flex-row bg-transparent">
-            <Card.Img  className='img-item d-flex' variant="top" src={item.imgUrl} />
-            <Card.Body>
-              <div className='d-flex justify-content-between'>
-              <Card.Title className='item-title'>{item.title}</Card.Title>
-               <p className='item-price'>{item.price}</p>
+      {
+        products.length === 0 ? (
+          <>
+            <h1 className='text-center my-5 pt-5'>Your Cart is Empty</h1>
+            <p className='text-center'>Add some products to your cart to see them here.</p>
+          </>
+        ) : (
+          <>
+            <div className='container pt-5 mt-5'>
+              <h1 className='text-center'>Your Cart</h1>
+              <div className='d-flex justify-content-between py-2'>
+                <h3>Total Price = {totalPrice.toFixed(2)}$</h3>
+                <Button variant='danger' onClick={()=> dispatch(clearCart())}>Clear Cart</Button>
               </div>
-              <Card.Text className='item-description'>
-             { item.description}
-              </Card.Text>
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+              <table className='table table-striped table-bordered'>
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Total</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((product) => (
+                    <tr key={product.id}>
+                      <td><img style={{ width: '4rem' }} src={product.image} alt="product" /></td>
+                      <td>{product.title}</td>
+                      <td>${product.price}</td>
+                      <td>{product.quantity}</td>
+                      <td>${product.price * product.quantity}</td>
+                      <td><Button variant='danger' onClick={() => dispatch(removeFromCart(product))} >Delete</Button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div><div className='text-center my-5'>
+              <button className='btn btn-primary'>Proceed to Checkout</button>
+            </div>
+          </>
+        )
+      }
     </div>
   )
 }
